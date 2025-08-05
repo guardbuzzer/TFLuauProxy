@@ -2,6 +2,9 @@ name = "tfluau-proxy"
 compatibility_date = "2025-08-05"
 main = "index.js"
 
+[vars]
+PROXY_SECRET = ""
+
 # Remove these lines or add your actual values when deploying
 # account_id = ""
 # workers_dev = true

@@ -4,6 +4,23 @@ addEventListener('fetch', (event) => {
 
 async function handleRequest(request) {
   try {
+    const proxySecret = typeof PROXY_SECRET !== 'undefined' && PROXY_SECRET !== '' ? PROXY_SECRET : null
+    
+    if (proxySecret) {
+      const authHeader = request.headers.get('Proxy-Secret') || request.headers.get('Authorization')
+      const providedSecret = authHeader ? authHeader.replace(/^Bearer\s+/i, '') : null
+      
+      if (!providedSecret || providedSecret !== proxySecret) {
+        return new Response('Unauthorised', {
+          status: 401,
+          headers: { 
+            'content-type': 'text/plain',
+            'Access-Control-Allow-Origin': '*'
+          },
+        })
+      }
+    }
+
     const url = new URL(request.url)
 
     const tflApiBase = 'https://api.tfl.gov.uk'
@@ -12,6 +29,10 @@ async function handleRequest(request) {
     const modifiedHeaders = new Headers()
 
     for (const [key, value] of request.headers.entries()) {
+      if (key.toLowerCase() === 'proxy-secret') {
+        continue
+      }
+      
       const modifiedKey = key.replace(/-/g, '_')
       modifiedHeaders.set(modifiedKey, value)
     }
@@ -40,6 +61,7 @@ async function handleRequest(request) {
       'GET, POST, PUT, DELETE, OPTIONS',
     )
     responseHeaders.set('Access-Control-Allow-Headers', '*')
+    responseHeaders.set('Access-Control-Expose-Headers', '*')
 
     if (request.method === 'OPTIONS') {
       return new Response(null, {
@@ -54,7 +76,7 @@ async function handleRequest(request) {
       headers: responseHeaders,
     })
   } catch (error) {
-    return new Response(`Proxy Error: ${error.message}`, {
+    return new Response(`Proxy error: ${error.message}`, {
       status: 500,
       headers: { 'content-type': 'text/plain' },
     })
