@@ -12,7 +12,7 @@ async function handleRequest(request) {
     const modifiedHeaders = new Headers()
 
     for (const [key, value] of request.headers.entries()) {
-      const modifiedKey = key.replace(/_/g, '-')
+      const modifiedKey = key.replace(/-/g, '_')
       modifiedHeaders.set(modifiedKey, value)
     }
 
